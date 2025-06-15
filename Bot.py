@@ -81,6 +81,10 @@ async def create_ticket(interaction: discord.Interaction):
     category = discord.utils.get(interaction.guild.categories, name="Tickets")
     if not category:
         category = await interaction.guild.create_category("Tickets")
+    existing = discord.utils.get(category.channels, name=f"ticket—for—{interaction.user.name}")
+    if existing:
+        await interaction.response.send_message(f"You already have an open ticket: {existing.mention}", ephemeral=True)
+        return
     channel = await interaction.guild.create_text_channel(name=f"ticket—for—{interaction.user.name}", category=category)
     await channel.set_permissions(interaction.user, view_channel=True, send_messages=True)
     await interaction.response.send_message(f"Ticket created: {channel.mention}", ephemeral=True)
@@ -98,7 +102,7 @@ async def help(interaction: discord.Interaction):
     embed = discord.Embed(title="Server Commands", description="Here is a list of available bot commands:", color=discord.Color.dark_green())
     embed.add_field(name="/ping", value="Shows the current latency of the bot.", inline=False)
     embed.add_field(name="/fun", value="Sends a fun random cat-like emoticon.", inline=False)
-    embed.add_field(name="/rules", value="Displays the server rules in an embed.", inline=False)
+    embed.add_field(name="/rules", value="Displays the server rules", inline=False)
     embed.add_field(name="/about", value="Gives information about this bot and its creators.", inline=False)
     embed.add_field(name="/create_ticket", value="Creates a private support ticket channel for you.", inline=False)
     embed.add_field(name="/close_ticket", value="Closes the ticket channel you are in.", inline=False)
