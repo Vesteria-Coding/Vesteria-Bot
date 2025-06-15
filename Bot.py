@@ -9,6 +9,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("discord_token")
 GUILD_ID = 1251261187404857496
 ALLOWED_USERS = [895402417112375296]
+BLOCKED_USER_ID = [1015048641041412096]
 
 # Setup
 intents = discord.Intents.all()
@@ -25,6 +26,18 @@ async def on_ready():
     print(f"Bot is ready. Logged in as {client.user} (ID: {client.user.id})")
     await tree.sync(guild=discord.Object(id=GUILD_ID))
     print("commands synced to guild")
+
+@client.event
+async def on_message(message):
+    if message.author.id in BLOCKED_USER_ID:
+        try:
+            await message.delete()
+        except discord.Forbidden:
+            print("Missing permissions to delete the message.")
+        except discord.HTTPException as e:
+            print(f"Failed to delete message: {e}")
+    else:
+        await bot.process_commands(message)
 
 @tree.command(name="ping", description="sends ping of bot", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
