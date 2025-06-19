@@ -8,7 +8,7 @@ from discord import app_commands, Interaction, Embed
 load_dotenv()
 BOT_TOKEN = os.getenv("discord_token")
 GUILD_ID = 1251261187404857496
-ALLOWED_USERS = [895402417112375296]
+ALLOWED_USERS = []
 BLOCKED_USER_ID = [1015048641041412096]
 
 # Setup
@@ -16,8 +16,8 @@ intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 tree = discord.app_commands.CommandTree(client)
 fun_responses = ['ᓚᘏᗢ',
-       'ฅ^•ﻌ•^ฅ',
-       r"""(\\ (\
+'ฅ^•ﻌ•^ฅ',
+r"""(\\ (\
 ( -.-)
 o_(")(")"""]
 
@@ -36,15 +36,13 @@ async def on_message(message):
             print("Missing permissions to delete the message.")
         except discord.HTTPException as e:
             print(f"Failed to delete message: {e}")
-    else:
-        await bot.process_commands(message)
 
 @tree.command(name="ping", description="sends ping of bot", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
     latency = client.latency * 1000  # Convert to ms
     await interaction.response.send_message(f'Pong! `{latency:.2f}ms`', ephemeral=True)
 
-@tree.command(name="fun", description="List of fun commands", guild=discord.Object(id=GUILD_ID))
+@tree.command(name="fun", description="Display a fun respons", guild=discord.Object(id=GUILD_ID))
 async def fun(interaction: discord.Interaction):
     r.seed(interaction.id)
     await interaction.response.send_message(r.choice(fun_responses), ephemeral=True)
@@ -94,12 +92,19 @@ async def create_ticket(interaction: discord.Interaction):
     category = discord.utils.get(interaction.guild.categories, name="Tickets")
     if not category:
         category = await interaction.guild.create_category("Tickets")
-    existing = discord.utils.get(category.channels, name=f"ticket—for—{interaction.user.name}")
+    existing = discord.utils.get(category.channels, name=f"ticket-for-{interaction.user.name}")
     if existing:
         await interaction.response.send_message(f"You already have an open ticket: {existing.mention}", ephemeral=True)
         return
-    channel = await interaction.guild.create_text_channel(name=f"ticket—for—{interaction.user.name}", category=category)
-    await channel.set_permissions(interaction.user, view_channel=True, send_messages=True)
+    overwrites = {
+        interaction.guild.default_role: discord.PermissionOverwrite(view_channel=False),
+        interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True)
+    }
+    channel = await interaction.guild.create_text_channel(
+        name=f"ticket-for-{interaction.user.name}",
+        category=category,
+        overwrites=overwrites
+    )
     await interaction.response.send_message(f"Ticket created: {channel.mention}", ephemeral=True)
 
 @tree.command(guild=discord.Object(id=GUILD_ID), name="close_ticket", description="Close the current ticket")
@@ -127,8 +132,8 @@ async def help(interaction: discord.Interaction):
 @tree.command(name="socials", description="send Vesteria_'s socials media", guild=discord.Object(id=GUILD_ID))
 async def socials(interaction: discord.Interaction):
     embed = discord.Embed(title="Social Media")
-    embed.add_field(name="Twitch", value="https://twitch.tv/Vester1a_", inline=False)
-    embed.add_field(name="Youtube", value="https://www.youtube.com/@Vesteria_", inline=False)
+    embed.add_field(name="**Twitch**", value="https://twitch.tv/Vester1a_", inline=False)
+    embed.add_field(name="**Youtube**", value="https://www.youtube.com/@Vesteria_", inline=False)
     embed.set_footer(text="Thanks for being part of Vesteria Club!")
     await interaction.response.send_message(embed=embed, ephemeral=True)
 
